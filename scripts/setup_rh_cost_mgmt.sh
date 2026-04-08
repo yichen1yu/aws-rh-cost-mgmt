@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+
+# When piped via `curl | bash`, bash reads the script from stdin incrementally
+# which breaks interactive prompts and complex constructs. Detect this case,
+# write the script to a temp file, and re-execute from disk.
+if [ -z "${__RH_COST_MGMT_REEXEC:-}" ] && [ ! -t 0 ]; then
+  _tmpscript="$(mktemp "${TMPDIR:-/tmp}/setup_rh_cost_mgmt.XXXXXX")"
+  cat > "$_tmpscript"
+  chmod +x "$_tmpscript"
+  export __RH_COST_MGMT_REEXEC=1
+  exec bash "$_tmpscript" "$@"
+fi
+
 set -euo pipefail
 
 # Red Hat Cost Management / ELS metering AWS bootstrap
