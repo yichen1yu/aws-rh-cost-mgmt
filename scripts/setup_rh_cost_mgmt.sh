@@ -525,7 +525,7 @@ if [[ "$PHASE2" -eq 1 ]]; then
 fi
 
 # --- Handle --plan (generic) ---
-if [[ "$PLAN" -eq 1 && "$WIZARD" -eq 0 && "${#ARGS[@]:-0}" -lt 3 ]]; then
+if [[ "$PLAN" -eq 1 && "$WIZARD" -eq 0 && "${#ARGS[@]}" -lt 3 ]]; then
   cat <<EOF
 Plan (generic):
   - Ensure S3 bucket: s3://<BUCKET_NAME> (region: <AWS_REGION>)
@@ -543,7 +543,7 @@ EOF
   exit 0
 fi
 
-if [[ ${#ARGS[@]:-0} -gt 0 ]]; then
+if [[ "${#ARGS[@]}" -gt 0 ]]; then
   set -- "${ARGS[@]}" "$@"
 fi
 
