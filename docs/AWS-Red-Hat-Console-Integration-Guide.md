@@ -7,14 +7,15 @@ This guide walks through integrating your AWS account with Red Hat Hybrid Cloud 
 ## Table of contents
 
 1. [Overview](#1-overview)
-2. [Easier path: Run in AWS CloudShell](#2-easier-path-run-in-aws-cloudshell)
-3. [Prerequisites (for local run)](#3-prerequisites-for-local-run)
-4. [Step-by-step summary](#4-step-by-step-summary)
-5. [Detailed steps](#5-detailed-steps)
-6. [Script reference](#6-script-reference)
-7. [Required AWS permissions](#7-required-aws-permissions)
-8. [Troubleshooting](#8-troubleshooting)
-9. [After setup](#9-after-setup)
+2. [Easiest path: Use AWS MCP in Cursor](#2-easiest-path-use-aws-mcp-in-cursor)
+3. [Easier path: Run in AWS CloudShell](#3-easier-path-run-in-aws-cloudshell)
+4. [Prerequisites (for local run)](#4-prerequisites-for-local-run)
+5. [Step-by-step summary](#5-step-by-step-summary)
+6. [Detailed steps](#6-detailed-steps)
+7. [Script reference](#7-script-reference)
+8. [Required AWS permissions](#8-required-aws-permissions)
+9. [Troubleshooting](#9-troubleshooting)
+10. [After setup](#10-after-setup)
 
 ---
 
@@ -53,7 +54,85 @@ If the Red Hat wizard is re-run (generating a new External ID), use `--update-ex
 
 ---
 
-## 2. Easier path: Run in AWS CloudShell
+## 2. Easiest path: Use AWS MCP in Cursor
+
+If you use [Cursor](https://cursor.com) as your IDE, the **AWS MCP (Model Context Protocol)** lets the AI agent run AWS CLI commands directly — no terminal, no credential juggling. You describe what you want in natural language and the agent handles all the AWS API calls for you.
+
+### 2.1 One-time setup: Install the AWS MCP server
+
+Add the following to your Cursor MCP configuration file (`~/.cursor/mcp.json`). Create the file if it doesn't exist.
+
+```json
+{
+  "mcpServers": {
+    "aws-mcp": {
+      "command": "uvx",
+      "args": [
+        "mcp-proxy-for-aws@latest",
+        "https://aws-mcp.us-east-1.api.aws/mcp",
+        "--metadata", "AWS_REGION=us-east-1"
+      ]
+    }
+  }
+}
+```
+
+> **Note:** If `uvx` is not on your PATH, use the full path (e.g. `/Users/<you>/.local/bin/uvx`). Install it with `pip install uv` or `brew install uv` if needed.
+
+After saving, restart Cursor. The AWS MCP server should appear in Cursor's MCP panel.
+
+### 2.2 AWS credentials
+
+The MCP proxy uses the standard AWS credential chain (environment variables, `~/.aws/credentials`, SSO session, etc.). Make sure you can run `aws sts get-caller-identity` successfully before using the MCP — if your session is expired, log in first:
+
+```bash
+aws sso login
+```
+
+### 2.3 Run the integration via the AI agent
+
+Once the AWS MCP is active, open Cursor's agent chat and describe what you want. The agent can execute every step of the setup directly. For example:
+
+> **You:** "Run the setup script for Red Hat cost management integration with wizard mode"
+
+Or ask it step by step:
+
+> **You:** "Create an S3 bucket named rh-cost-mgmt-reports-123456789012-us-east-1 in us-east-1"
+> **You:** "Create a CUR report named koku pointing to that bucket"
+> **You:** "Create the IAM role RH_ELS_Metering_Role trusting Red Hat account 589173575009 with external ID abc-123"
+> **You:** "Tag my running EC2 instances with com_redhat_rhel=7 and com_redhat_rhel_addon=ELS"
+> **You:** "Activate the Cost Allocation Tags for those tag keys"
+
+The agent uses the AWS MCP's `call_aws` tool to execute each command and shows you the results inline. No copy-pasting CLI commands, no switching to a terminal.
+
+### 2.4 Phase 2 and validation via the agent
+
+After ~24 hours, come back to the agent and ask:
+
+> **You:** "Run phase 2 of the cost management setup — activate the cost allocation tags and validate everything"
+
+The agent will check CUR delivery, activate tags, verify IAM trust, and report the results — all within the chat.
+
+### 2.5 What the AWS MCP provides
+
+| Tool | What it does |
+|------|-------------|
+| `call_aws` | Execute any AWS CLI command directly (the primary tool) |
+| `suggest_aws_commands` | Get command suggestions from a natural language description |
+| `read_documentation` | Fetch and read AWS documentation pages |
+| `list_regions` | List available AWS regions |
+| `get_regional_availability` | Check service availability by region |
+
+### 2.6 Why this is the easiest path
+
+- **No terminal needed** — the AI agent runs all AWS commands through the MCP.
+- **No credential copy-paste** — the MCP proxy uses your existing AWS session (same as `aws` CLI).
+- **Guided by AI** — the agent understands the integration steps and can troubleshoot errors on the spot.
+- **Works with the scripts too** — you can ask the agent to run `./scripts/setup_rh_cost_mgmt.sh --wizard` in the terminal, or have it execute the equivalent AWS commands directly via MCP.
+
+---
+
+## 3. Easier path: Run in AWS CloudShell
 
 You can skip local AWS CLI install and credential setup by running the setup script **inside AWS CloudShell**. When you use the AWS Console in the browser (including logging in via Red Hat IdP and selecting your role, e.g. uxd-testing), CloudShell uses the **same session** — no separate SSO start URL or profile configuration.
 
@@ -99,16 +178,16 @@ chmod +x setup_rh_cost_mgmt.sh
 
 ---
 
-## 3. Prerequisites (for local run)
+## 4. Prerequisites (for local run)
 
 If you run the script **on your laptop or a build server** instead of CloudShell, you need the following.
 
-### 3.1 AWS CLI
+### 4.1 AWS CLI
 
 - **AWS CLI v2** installed and on your `PATH`.
 - Install: [AWS CLI v2 install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) (e.g. macOS: `brew install awscli` or official installer).
 
-### 3.2 AWS credentials
+### 4.2 AWS credentials
 
 The scripts call the AWS API. You must be authenticated so that `aws sts get-caller-identity` works.
 
@@ -127,20 +206,20 @@ The scripts call the AWS API. You must be authenticated so that `aws sts get-cal
 aws sts get-caller-identity
 ```
 
-If this fails, fix credentials (see [Troubleshooting](#8-troubleshooting)).
+If this fails, fix credentials (see [Troubleshooting](#9-troubleshooting)).
 
-### 3.3 Get the External ID from Red Hat
+### 4.3 Get the External ID from Red Hat
 
 - In **Red Hat Hybrid Cloud Console**, start the cost/metering integration wizard.
 - It will show an **External ID**. Copy it; you'll need it when running the setup script.
 
-### 3.4 Optional: `jq`
+### 4.4 Optional: `jq`
 
 - For pretty-printed JSON when using `--output json`, install `jq` (e.g. `brew install jq`). Not required for the script to run.
 
 ---
 
-## 4. Step-by-step summary
+## 5. Step-by-step summary
 
 | # | Step | Automated? | Phase |
 |---|------|------------|-------|
@@ -156,11 +235,11 @@ If this fails, fix credentials (see [Troubleshooting](#8-troubleshooting)).
 
 ---
 
-## 5. Detailed steps
+## 6. Detailed steps
 
 ### Step 1: Install and configure AWS CLI (skip if using CloudShell)
 
-1. Install AWS CLI v2 (see [Prerequisites](#21-aws-cli)).
+1. Install AWS CLI v2 (see [Prerequisites](#41-aws-cli)).
 2. If using **AWS SSO**:
    - Run: `aws configure sso`
    - Enter the **AWS SSO start URL** (e.g. `https://d-xxxxxxxxxx.awsapps.com/start`), not a Red Hat IdP URL.
@@ -275,7 +354,7 @@ This updates both the IAM role and the saved state file.
 
 ---
 
-## 6. Script reference
+## 7. Script reference
 
 ### Setup (Phase 1)
 
@@ -369,7 +448,7 @@ The installer downloads the script and its checksum and verifies integrity befor
 
 ---
 
-## 7. Required AWS permissions
+## 8. Required AWS permissions
 
 The identity used to run the setup script must have:
 
@@ -384,7 +463,7 @@ The identity used to run the setup script must have:
 
 ---
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 ### "I'm using CloudShell — do I need to configure credentials?"
 
@@ -424,12 +503,12 @@ No. CloudShell is already authenticated with the same identity you used to log i
 
 ### Script fails on IAM or S3
 
-- Confirm the identity has the [required permissions](#7-required-aws-permissions).
+- Confirm the identity has the [required permissions](#8-required-aws-permissions).
 - For bucket names: use a globally unique name; common pattern is `rh-cost-mgmt-reports-<account-id>-<region>`.
 
 ---
 
-## 9. After setup
+## 10. After setup
 
 1. **Red Hat Hybrid Cloud Console** — The integration should show as configured once the wizard is completed with the correct Role ARN and External ID.
 2. **CUR data** — First CUR delivery can take up to 24 hours. Objects will appear under `s3://<bucket>/cost/`.

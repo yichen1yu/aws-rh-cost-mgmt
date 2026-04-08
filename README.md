@@ -31,7 +31,32 @@ What remains manual:
 
 ## Quick start
 
-### Option A: Run in AWS CloudShell (easiest)
+### Option A: Use AWS MCP in Cursor (easiest — no terminal needed)
+
+If you use [Cursor](https://cursor.com), install the **AWS MCP** and let the AI agent handle everything. Add this to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "aws-mcp": {
+      "command": "uvx",
+      "args": [
+        "mcp-proxy-for-aws@latest",
+        "https://aws-mcp.us-east-1.api.aws/mcp",
+        "--metadata", "AWS_REGION=us-east-1"
+      ]
+    }
+  }
+}
+```
+
+Restart Cursor, then open the agent chat and say:
+
+> "Run the setup script for Red Hat cost management integration with wizard mode"
+
+The agent executes all AWS commands via MCP — no copy-pasting CLI commands, no switching to a terminal. See the [full AWS MCP guide](docs/AWS-Red-Hat-Console-Integration-Guide.md#2-easiest-path-use-aws-mcp-in-cursor) for details.
+
+### Option B: Run in AWS CloudShell (easy — no local setup)
 
 No local AWS CLI or credential setup needed. Log into the AWS Console (including via Red Hat IdP → Select a role), open **AWS CloudShell**, then run:
 
@@ -41,7 +66,7 @@ chmod +x setup_rh_cost_mgmt.sh
 ./setup_rh_cost_mgmt.sh --wizard
 ```
 
-### Option B: Clone and run locally
+### Option C: Clone and run locally
 
 ```bash
 git clone https://github.com/yichen1yu/aws-rh-cost-mgmt.git
