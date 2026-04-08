@@ -490,8 +490,9 @@ post_run_summary() {
 
 # --- Parse flags ---
 
-ARGS=()
-while (( "$#" )); do
+POSITIONAL=""
+POSITIONAL_COUNT=0
+while [ $# -gt 0 ]; do
   case "${1:-}" in
     --wizard) WIZARD=1; shift ;;
     --plan) PLAN=1; shift ;;
@@ -502,7 +503,7 @@ while (( "$#" )); do
     -h|--help) usage; exit 0 ;;
     --) shift; break ;;
     -* ) die "Unknown flag: $1" ;;
-    *  ) ARGS+=("$1"); shift ;;
+    *  ) POSITIONAL="${POSITIONAL:+$POSITIONAL }$1"; POSITIONAL_COUNT=$((POSITIONAL_COUNT+1)); shift ;;
   esac
 done
 
@@ -525,7 +526,7 @@ if [[ "$PHASE2" -eq 1 ]]; then
 fi
 
 # --- Handle --plan (generic) ---
-if [[ "$PLAN" -eq 1 && "$WIZARD" -eq 0 && "${#ARGS[@]}" -lt 3 ]]; then
+if [ "$PLAN" -eq 1 ] && [ "$WIZARD" -eq 0 ] && [ "$POSITIONAL_COUNT" -lt 3 ]; then
   cat <<EOF
 Plan (generic):
   - Ensure S3 bucket: s3://<BUCKET_NAME> (region: <AWS_REGION>)
@@ -543,8 +544,8 @@ EOF
   exit 0
 fi
 
-if [[ "${#ARGS[@]}" -gt 0 ]]; then
-  set -- "${ARGS[@]}" "$@"
+if [ "$POSITIONAL_COUNT" -gt 0 ]; then
+  set -- $POSITIONAL "$@"
 fi
 
 if [[ "$PLAN" -eq 0 || ( "$PLAN" -eq 1 && "$#" -ge 3 ) || "$WIZARD" -eq 1 ]]; then
