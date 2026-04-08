@@ -139,10 +139,10 @@ You can skip local AWS CLI install and credential setup by running the setup scr
 If the script is hosted at a base URL (e.g. your CDN or GitHub raw), run in CloudShell:
 
 ```bash
-curl -fsSL "<BASE_URL>/setup_rh_cost_mgmt.sh" | bash -s -- --wizard
+curl -fsSL "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts/setup_rh_cost_mgmt.sh" | bash -s -- --wizard
 ```
 
-Replace `<BASE_URL>` with the real URL (e.g. `https://raw.githubusercontent.com/your-org/your-repo/main/scripts` or your own host). You will be prompted for bucket name, region, External ID, and optional tagging regions.
+You will be prompted for bucket name, region, External ID, and optional tagging regions.
 
 **Option B — Script not hosted (copy from repo)**
 
@@ -155,10 +155,10 @@ chmod +x setup_rh_cost_mgmt.sh
 ./setup_rh_cost_mgmt.sh --wizard
 ```
 
-Or download it from GitHub (replace `<org>/<repo>` and branch if needed):
+Or download it from GitHub:
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/<org>/<repo>/main/scripts/setup_rh_cost_mgmt.sh" -o setup_rh_cost_mgmt.sh
+curl -fsSL "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts/setup_rh_cost_mgmt.sh" -o setup_rh_cost_mgmt.sh
 chmod +x setup_rh_cost_mgmt.sh
 ./setup_rh_cost_mgmt.sh --wizard
 ```
@@ -427,10 +427,11 @@ Removes the CUR definition and IAM role/policy. With `--remove-bucket`, empties 
 If you host the scripts at a base URL (e.g. CDN or GitHub raw):
 
 ```bash
-curl -fsSL "<BASE_URL>/install-rh-cost-mgmt.sh" | bash -s -- --base-url "<BASE_URL>" --tool setup -- --wizard
+curl -fsSL "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts/install-rh-cost-mgmt.sh" | bash -s -- \
+  --base-url "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts" --tool setup -- --wizard
 ```
 
-Replace `<BASE_URL>` with the URL that serves the scripts and their `.sha256` files. After the second `--`, arguments are passed to the setup script (e.g. `--wizard` or positional args).
+After the second `--`, arguments are passed to the setup script (e.g. `--wizard` or positional args).
 
 - `--tool setup` — run setup (default).
 - `--tool validate` — run validation (pass bucket/region after `--`).
