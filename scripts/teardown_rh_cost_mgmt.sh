@@ -19,7 +19,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 confirm() {
   local prompt="$1"
   if [[ "${ASSUME_YES:-0}" -eq 1 ]]; then return 0; fi
-  read -rp "$prompt [y/N]: " ans
+  read -rp "$prompt [y/N]: " ans < /dev/tty
   [[ "${ans,,}" == "y" || "${ans,,}" == "yes" ]]
 }
 

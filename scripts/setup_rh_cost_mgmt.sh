@@ -556,12 +556,12 @@ DEFAULT_REGION="$(aws configure get region || true)"
 
 if [[ "$WIZARD" -eq 1 ]]; then
   echo "== Phase 1: Initial setup (wizard mode) =="
-  read -rp "S3 bucket name for CUR [rh-cost-mgmt-reports-$(account_id)-${DEFAULT_REGION:-us-east-1}]: " BUCKET_NAME
+  read -rp "S3 bucket name for CUR [rh-cost-mgmt-reports-$(account_id)-${DEFAULT_REGION:-us-east-1}]: " BUCKET_NAME < /dev/tty
   BUCKET_NAME="${BUCKET_NAME:-rh-cost-mgmt-reports-$(account_id)-${DEFAULT_REGION:-us-east-1}}"
-  read -rp "AWS region for bucket and CE [${DEFAULT_REGION:-us-east-1}]: " AWS_REGION
+  read -rp "AWS region for bucket and CE [${DEFAULT_REGION:-us-east-1}]: " AWS_REGION < /dev/tty
   AWS_REGION="${AWS_REGION:-${DEFAULT_REGION:-us-east-1}}"
-  read -rp "External ID (from Red Hat wizard): " EXTERNAL_ID
-  read -rp "Tagging regions (comma-separated) [leave blank to skip tagging]: " TAG_REGIONS
+  read -rp "External ID (from Red Hat wizard): " EXTERNAL_ID < /dev/tty
+  read -rp "Tagging regions (comma-separated) [leave blank to skip tagging]: " TAG_REGIONS < /dev/tty
 else
   if [[ $# -lt 3 ]]; then
     usage; exit 1
