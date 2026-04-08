@@ -17,7 +17,7 @@ set -euo pipefail
 # Automates:
 # - S3 bucket for CUR
 # - CUR report "koku" (hourly, resources, gzip, Redshift/QuickSight)
-# - Optional EC2 tagging (com_redhat_rhel=7, com_redhat_rhel_addon=ELS)
+# - EC2 tagging (com_redhat_rhel=7, com_redhat_rhel_addon=ELS)
 # - Activate Cost Allocation Tags
 # - Create/Update IAM policy and role trusted to Red Hat account with provided External ID
 # Outputs Role ARN and CUR details for use in Red Hat Hybrid Cloud Console wizard.
@@ -573,7 +573,8 @@ if [[ "$WIZARD" -eq 1 ]]; then
   read -rp "AWS region for bucket and CE [${DEFAULT_REGION:-us-east-1}]: " AWS_REGION < /dev/tty
   AWS_REGION="${AWS_REGION:-${DEFAULT_REGION:-us-east-1}}"
   read -rp "External ID (from Red Hat wizard): " EXTERNAL_ID < /dev/tty
-  read -rp "Tagging regions (comma-separated) [leave blank to skip tagging]: " TAG_REGIONS < /dev/tty
+  read -rp "EC2 tagging regions (comma-separated) [$AWS_REGION]: " TAG_REGIONS < /dev/tty
+  TAG_REGIONS="${TAG_REGIONS:-$AWS_REGION}"
 else
   if [[ $# -lt 3 ]]; then
     usage; exit 1

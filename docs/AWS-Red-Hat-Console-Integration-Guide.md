@@ -32,7 +32,7 @@ This guide walks through integrating your AWS account with Red Hat Hybrid Cloud 
 |------|----------------------|
 | S3 | Creates an S3 bucket for the CUR (or uses an existing one). |
 | CUR | Creates the CUR report named `koku` (hourly, resources, gzip, Redshift/QuickSight) pointing to your bucket. |
-| EC2 tagging | Optionally tags running EC2 instances with `com_redhat_rhel=7` and `com_redhat_rhel_addon=ELS` in chosen regions. |
+| EC2 tagging | Tags running EC2 instances with `com_redhat_rhel=7` and `com_redhat_rhel_addon=ELS` in chosen regions. |
 | Cost Allocation Tags | Activates the two tags in Cost Explorer (when ready). |
 | IAM | Creates/updates an IAM policy and role that Red Hat can assume (using your External ID). |
 
@@ -142,7 +142,7 @@ If the script is hosted at a base URL (e.g. your CDN or GitHub raw), run in Clou
 curl -fsSL "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts/setup_rh_cost_mgmt.sh" | bash -s -- --wizard
 ```
 
-You will be prompted for bucket name, region, External ID, and optional tagging regions.
+You will be prompted for bucket name, region, External ID, and tagging regions.
 
 **Option B — Script not hosted (copy from repo)**
 
@@ -263,7 +263,7 @@ You will be prompted for:
 - S3 bucket name (default suggested: `rh-cost-mgmt-reports-<account-id>-<region>`)
 - AWS region (e.g. `us-east-1`)
 - External ID (from Step 2)
-- Optional: comma-separated regions for EC2 tagging (or leave blank to skip)
+- Comma-separated regions for EC2 tagging (defaults to the bucket region)
 
 **Option B — Direct arguments**
 
@@ -354,7 +354,7 @@ This updates both the IAM role and the saved state file.
 |------|-------------|
 | Script | `scripts/setup_rh_cost_mgmt.sh` |
 | Usage | `./setup_rh_cost_mgmt.sh <BUCKET_NAME> <AWS_REGION> <EXTERNAL_ID> [TAG_REGIONS]` |
-| `--wizard` | Interactive prompts for bucket, region, External ID, and optional tagging regions |
+| `--wizard` | Interactive prompts for bucket, region, External ID, and tagging regions |
 | `--plan` | Dry run: print intended actions, no AWS changes |
 | `--output json` | Print JSON with `RoleArn`, `ExternalId`, `Bucket`, `Region`, `Prefix` |
 | `--show` | Display saved wizard values from state file |

@@ -8,7 +8,7 @@ For the full step-by-step walkthrough (including prerequisites, troubleshooting,
 
 - S3 bucket creation for CUR
 - Defines the CUR report "koku" (hourly, resources, gzip, Redshift/QuickSight)
-- Optional EC2 instance tagging across regions:
+- EC2 instance tagging across regions:
   - `com_redhat_rhel=7`
   - `com_redhat_rhel_addon=ELS`
 - Activates the two Cost Allocation Tags
@@ -127,7 +127,7 @@ Flags:
 # Guided setup (Phase 1)
 ./scripts/setup_rh_cost_mgmt.sh --wizard
 
-# Non-interactive with optional EC2 tagging across multiple regions
+# Non-interactive with EC2 tagging across multiple regions
 ./scripts/setup_rh_cost_mgmt.sh rh-cost-mgmt-reports-123456789012-us-east-1 us-east-1 abcdef-1234 us-east-1,us-west-2
 
 # Dry run
@@ -181,7 +181,7 @@ Removes the CUR definition and IAM artifacts; optionally empties and deletes the
 - S3: `s3:Get*`, `s3:List*`, `s3:CreateBucket`, `s3:PutBucketPolicy`
 - CUR: `cur:PutReportDefinition`, `cur:DescribeReportDefinitions` (us-east-1 scoped)
 - CE: `ce:UpdateCostAllocationTagsStatus`, `ce:ListCostAllocationTags`, `ce:GetCostAndUsage`, `ce:GetCostForecast`
-- EC2: `ec2:CreateTags`, `ec2:DescribeInstances` (optional, only if tagging is used)
+- EC2: `ec2:CreateTags`, `ec2:DescribeInstances`
 - IAM: Create/Update policy and role; attach policy
 - Organizations: `organizations:List*`, `organizations:Describe*` (if applicable)
 
