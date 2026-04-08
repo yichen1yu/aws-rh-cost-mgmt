@@ -31,9 +31,39 @@ What remains manual:
 
 ## Quick start
 
-### Option A: Use AWS MCP in Cursor (easiest — no terminal needed)
+### Option A: Run in AWS CloudShell (no local setup)
 
-If you use [Cursor](https://cursor.com), install the **AWS MCP** and let the AI agent handle everything. Add this to `~/.cursor/mcp.json`:
+No local AWS CLI or credential setup needed. Log into the AWS Console (including via Red Hat IdP → Select a role), open **AWS CloudShell**, then run:
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts/setup_rh_cost_mgmt.sh" -o setup_rh_cost_mgmt.sh
+chmod +x setup_rh_cost_mgmt.sh
+./setup_rh_cost_mgmt.sh --wizard
+```
+
+### Option B: Clone and run locally
+
+```bash
+git clone https://github.com/yichen1yu/aws-rh-cost-mgmt.git
+cd aws-rh-cost-mgmt
+
+# Phase 1: Initial setup (guided wizard)
+./scripts/setup_rh_cost_mgmt.sh --wizard
+
+# Complete the Red Hat Hybrid Cloud Console wizard with the output values.
+# Wait ~24 hours for Cost Allocation Tags and CUR data.
+
+# Phase 2: Activate tags and validate
+./scripts/setup_rh_cost_mgmt.sh --phase2
+```
+
+## Running from Cursor with AWS MCP (recommended for IDE users)
+
+If you use [Cursor](https://cursor.com), you can install the **AWS MCP** so the AI agent can run the setup script and all AWS commands for you — directly from the IDE, no terminal switching needed.
+
+### One-time setup
+
+Add this to your Cursor MCP config (`~/.cursor/mcp.json`):
 
 ```json
 {
@@ -50,37 +80,21 @@ If you use [Cursor](https://cursor.com), install the **AWS MCP** and let the AI 
 }
 ```
 
-Restart Cursor, then open the agent chat and say:
+> Install `uvx` with `pip install uv` or `brew install uv` if needed. If it's not on your PATH, use the full path (e.g. `/Users/<you>/.local/bin/uvx`).
 
-> "Run the setup script for Red Hat cost management integration with wizard mode"
+Restart Cursor after saving. The AWS MCP server will appear in Cursor's MCP panel.
 
-The agent executes all AWS commands via MCP — no copy-pasting CLI commands, no switching to a terminal. See the [full AWS MCP guide](docs/AWS-Red-Hat-Console-Integration-Guide.md#2-easiest-path-use-aws-mcp-in-cursor) for details.
+### How it works
 
-### Option B: Run in AWS CloudShell (easy — no local setup)
+The AWS MCP doesn't replace the integration scripts — it gives the AI agent the ability to **execute the scripts and AWS CLI commands on your behalf**. The integration logic (what resources to create, what settings to use, how to configure IAM trust) still comes from the scripts in this repo.
 
-No local AWS CLI or credential setup needed. Log into the AWS Console (including via Red Hat IdP → Select a role), open **AWS CloudShell**, then run:
+With the AWS MCP active, you can open the agent chat in Cursor and ask it to run the setup. The agent will:
+1. Execute `./scripts/setup_rh_cost_mgmt.sh --wizard` or the equivalent AWS commands via MCP
+2. Show you the results inline (Role ARN, bucket, etc.)
+3. Run `--phase2` when you come back after 24 hours
+4. Troubleshoot any errors on the spot using the AWS MCP tools
 
-```bash
-curl -fsSL "https://raw.githubusercontent.com/yichen1yu/aws-rh-cost-mgmt/main/scripts/setup_rh_cost_mgmt.sh" -o setup_rh_cost_mgmt.sh
-chmod +x setup_rh_cost_mgmt.sh
-./setup_rh_cost_mgmt.sh --wizard
-```
-
-### Option C: Clone and run locally
-
-```bash
-git clone https://github.com/yichen1yu/aws-rh-cost-mgmt.git
-cd aws-rh-cost-mgmt
-
-# Phase 1: Initial setup (guided wizard)
-./scripts/setup_rh_cost_mgmt.sh --wizard
-
-# Complete the Red Hat Hybrid Cloud Console wizard with the output values.
-# Wait ~24 hours for Cost Allocation Tags and CUR data.
-
-# Phase 2: Activate tags and validate
-./scripts/setup_rh_cost_mgmt.sh --phase2
-```
+This means no copy-pasting CLI commands and no switching between terminals and docs. See the [full details in the Integration Guide](docs/AWS-Red-Hat-Console-Integration-Guide.md#2-running-from-cursor-with-aws-mcp).
 
 ## Contents
 

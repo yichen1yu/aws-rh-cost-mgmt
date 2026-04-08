@@ -7,8 +7,8 @@ This guide walks through integrating your AWS account with Red Hat Hybrid Cloud 
 ## Table of contents
 
 1. [Overview](#1-overview)
-2. [Easiest path: Use AWS MCP in Cursor](#2-easiest-path-use-aws-mcp-in-cursor)
-3. [Easier path: Run in AWS CloudShell](#3-easier-path-run-in-aws-cloudshell)
+2. [Running from Cursor with AWS MCP](#2-running-from-cursor-with-aws-mcp)
+3. [Run in AWS CloudShell](#3-run-in-aws-cloudshell)
 4. [Prerequisites (for local run)](#4-prerequisites-for-local-run)
 5. [Step-by-step summary](#5-step-by-step-summary)
 6. [Detailed steps](#6-detailed-steps)
@@ -54,9 +54,9 @@ If the Red Hat wizard is re-run (generating a new External ID), use `--update-ex
 
 ---
 
-## 2. Easiest path: Use AWS MCP in Cursor
+## 2. Running from Cursor with AWS MCP
 
-If you use [Cursor](https://cursor.com) as your IDE, the **AWS MCP (Model Context Protocol)** lets the AI agent run AWS CLI commands directly — no terminal, no credential juggling. You describe what you want in natural language and the agent handles all the AWS API calls for you.
+If you use [Cursor](https://cursor.com) as your IDE, you can install the **AWS MCP (Model Context Protocol)** so the AI agent can run the setup scripts and AWS commands directly from the IDE. The AWS MCP doesn't replace the scripts — it gives the agent the ability to **execute them on your behalf**, so you don't need to switch to a terminal or copy-paste commands.
 
 ### 2.1 One-time setup: Install the AWS MCP server
 
@@ -77,62 +77,54 @@ Add the following to your Cursor MCP configuration file (`~/.cursor/mcp.json`). 
 }
 ```
 
-> **Note:** If `uvx` is not on your PATH, use the full path (e.g. `/Users/<you>/.local/bin/uvx`). Install it with `pip install uv` or `brew install uv` if needed.
+> **Note:** Install `uvx` with `pip install uv` or `brew install uv` if needed. If it's not on your PATH, use the full path (e.g. `/Users/<you>/.local/bin/uvx`).
 
 After saving, restart Cursor. The AWS MCP server should appear in Cursor's MCP panel.
 
 ### 2.2 AWS credentials
 
-The MCP proxy uses the standard AWS credential chain (environment variables, `~/.aws/credentials`, SSO session, etc.). Make sure you can run `aws sts get-caller-identity` successfully before using the MCP — if your session is expired, log in first:
+The MCP proxy uses the standard AWS credential chain (environment variables, `~/.aws/credentials`, SSO session, etc.). Make sure your AWS session is active before using the MCP — if it's expired, log in first:
 
 ```bash
 aws sso login
 ```
 
-### 2.3 Run the integration via the AI agent
+### 2.3 Using the agent to run the integration
 
-Once the AWS MCP is active, open Cursor's agent chat and describe what you want. The agent can execute every step of the setup directly. For example:
+Once the AWS MCP is active, open the agent chat in Cursor. The agent can run the setup script and all its phases for you. Clone this repo first, then ask the agent:
 
-> **You:** "Run the setup script for Red Hat cost management integration with wizard mode"
+> **You:** "Run `./scripts/setup_rh_cost_mgmt.sh --wizard` to set up the Red Hat cost management integration"
 
-Or ask it step by step:
+The agent will execute the script (either via the terminal or by running the equivalent AWS CLI commands through the MCP), show you the results inline, and guide you through the next steps.
 
-> **You:** "Create an S3 bucket named rh-cost-mgmt-reports-123456789012-us-east-1 in us-east-1"
-> **You:** "Create a CUR report named koku pointing to that bucket"
-> **You:** "Create the IAM role RH_ELS_Metering_Role trusting Red Hat account 589173575009 with external ID abc-123"
-> **You:** "Tag my running EC2 instances with com_redhat_rhel=7 and com_redhat_rhel_addon=ELS"
-> **You:** "Activate the Cost Allocation Tags for those tag keys"
+After ~24 hours, come back and ask:
 
-The agent uses the AWS MCP's `call_aws` tool to execute each command and shows you the results inline. No copy-pasting CLI commands, no switching to a terminal.
+> **You:** "Run `./scripts/setup_rh_cost_mgmt.sh --phase2` to activate cost allocation tags and validate the setup"
 
-### 2.4 Phase 2 and validation via the agent
+The agent can also run validation, update an External ID, or troubleshoot errors — all within the chat. If something goes wrong, the agent can inspect AWS resources directly via the MCP to diagnose and fix issues on the spot.
 
-After ~24 hours, come back to the agent and ask:
+### 2.4 What the AWS MCP provides
 
-> **You:** "Run phase 2 of the cost management setup — activate the cost allocation tags and validate everything"
-
-The agent will check CUR delivery, activate tags, verify IAM trust, and report the results — all within the chat.
-
-### 2.5 What the AWS MCP provides
+The MCP gives the agent these tools to work with AWS:
 
 | Tool | What it does |
 |------|-------------|
-| `call_aws` | Execute any AWS CLI command directly (the primary tool) |
+| `call_aws` | Execute any AWS CLI command directly |
 | `suggest_aws_commands` | Get command suggestions from a natural language description |
 | `read_documentation` | Fetch and read AWS documentation pages |
 | `list_regions` | List available AWS regions |
 | `get_regional_availability` | Check service availability by region |
 
-### 2.6 Why this is the easiest path
+### 2.5 Why use this approach
 
-- **No terminal needed** — the AI agent runs all AWS commands through the MCP.
-- **No credential copy-paste** — the MCP proxy uses your existing AWS session (same as `aws` CLI).
-- **Guided by AI** — the agent understands the integration steps and can troubleshoot errors on the spot.
-- **Works with the scripts too** — you can ask the agent to run `./scripts/setup_rh_cost_mgmt.sh --wizard` in the terminal, or have it execute the equivalent AWS commands directly via MCP.
+- **No terminal switching** — the agent runs scripts and AWS commands from the chat.
+- **Same credentials** — the MCP proxy uses your existing AWS session.
+- **AI-assisted troubleshooting** — the agent can inspect AWS resources and fix errors on the spot.
+- **All integration logic stays in the scripts** — the MCP is a tool, not a replacement for the setup workflow.
 
 ---
 
-## 3. Easier path: Run in AWS CloudShell
+## 3. Run in AWS CloudShell
 
 You can skip local AWS CLI install and credential setup by running the setup script **inside AWS CloudShell**. When you use the AWS Console in the browser (including logging in via Red Hat IdP and selecting your role, e.g. uxd-testing), CloudShell uses the **same session** — no separate SSO start URL or profile configuration.
 
